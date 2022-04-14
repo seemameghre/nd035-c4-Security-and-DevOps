@@ -2,6 +2,8 @@ package com.example.demo.controllers;
 
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +24,8 @@ import com.example.demo.model.requests.CreateUserRequest;
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
-	
+	public static final Logger log = LoggerFactory.getLogger(UserController.class);
+
 	@Autowired
 	private UserRepository userRepository;
 	
@@ -52,12 +55,15 @@ public class UserController {
 		user.setCart(cart);
 		if(createUserRequest.getPassword().length() < 8 ||
 		!createUserRequest.getPassword().equals(createUserRequest.getConfirmPassword())){
-			System.out.println("Error in password. Cannot create user "+createUserRequest.getUsername());
+			log.warn("Failed to create user: {}",createUserRequest.getUsername());
+
+//			System.out.println("Error in password. Cannot create user "+createUserRequest.getUsername());
 			return ResponseEntity.badRequest().build();
 		}
 		user.setPassword(bCryptPasswordEncoder.encode(createUserRequest.getPassword()));
 
 		userRepository.save(user);
+		log.info("User created successfully: {}",createUserRequest.getUsername());
 		return ResponseEntity.ok(user);
 	}
 }
